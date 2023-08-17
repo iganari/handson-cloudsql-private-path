@@ -1,9 +1,10 @@
-# handson-cloudsql-private-path
-
-Cloud SQL の Private Path を試すハンズオン
+# Hands On Google Cloud services authorization of Cloud SQL
 
 ## 概要
 
+Cloud SQL の Google Cloud services authorization( Private Path )を試すハンズオンです
+
+Cloud SQL にパブリック IP アドレスを持たせること無く、 BigQuery から連携クエリ( Federated queries )を実行可能なので、Google Cloud のセキュリティの向上に繋がります
 
 ## ハンズオン
 
@@ -27,14 +28,8 @@ gcloud auth login --no-launch-browser
   + ※ 他の API の有効化も必要になったタイミングで実施してください
 
 ```
-TBD
-```
-
-+ [?] ソースコードを clone します
-
-```
-git clone https://github.com/iganari/handson-cloudsql-private-path.git
-cd handson-build-ar-run
+### BigQuery Connection API
+gcloud beta services enable bigqueryconnection.googleapis.com --project ${_gc_pj_id}
 ```
 
 ## 1. Cloud SQL の準備
@@ -42,7 +37,6 @@ cd handson-build-ar-run
 こちらを参考に作成していきます
 
 https://github.com/iganari/package-gcp/tree/main/sql/feature-only-private-ip-addr
-
 
 + VPC Network の作成します
 
@@ -52,7 +46,7 @@ gcloud beta compute networks create ${_common}-network \
   --project ${_gc_pj_id}
 ```
 
-+ private services connection の作成
++ private services connection の作成します
 
 ```
 gcloud beta compute addresses create google-managed-services-${_common}-network \
@@ -63,7 +57,7 @@ gcloud beta compute addresses create google-managed-services-${_common}-network 
   --project ${_gc_pj_id}
 ```
 
-+ private connection の作成
++ private connection の作成します
 
 ```
 gcloud services vpc-peerings connect \
@@ -73,8 +67,8 @@ gcloud services vpc-peerings connect \
   --project ${_gc_pj_id}
 ```
 
-+ Cloud SQL Instance の作成
-  + `--enable-google-private-path` をつける
++ Cloud SQL Instance の作成します
+  + `--enable-google-private-path` をつけます
 
 ```
 export _date=`date +"%Y%m%d%H%M"`
@@ -82,8 +76,6 @@ export _date=`date +"%Y%m%d%H%M"`
 export _database_ver='MYSQL_8_0'
 export _machine_type='db-g1-small'
 export _sql_instance_name=$(echo ${_common}-${_date})
-
-echo ${_sql_instance_name}
 ```
 ```
 gcloud beta sql instances create ${_sql_instance_name} \
@@ -98,7 +90,7 @@ gcloud beta sql instances create ${_sql_instance_name} \
   --project ${_gc_pj_id}
 ```
 
-+ Cloud SQL Instance 内に database とユーザを作成
++ Cloud SQL Instance 内に database とユーザを作成します
 
 ```
 gcloud beta sql databases create ${_common} \
@@ -108,7 +100,7 @@ gcloud beta sql databases create ${_common} \
   --project ${_gc_pj_id}
 ```
 
-+ ユーザの作成( 組み込み認証を使用 )
++ ユーザの作成( 組み込み認証を使用 )します
 
 ```
 gcloud sql users create iganari \
@@ -118,7 +110,7 @@ gcloud sql users create iganari \
   --project ${_gc_pj_id}
 ```
 
-+ Cloud SQL にダミーデータをいれる
++ Cloud SQL にダミーデータをいれます
   + https://github.com/iganari/package-gcp/tree/main/sql/samples-dummydata
 
 ```
@@ -130,7 +122,7 @@ unzip world-db.zip
 unzip world_x-db.zip
 ```
 
-+ Google Cloud Storage の Bucket を作成する
++ Google Cloud Storage の Bucket を作成します
 
 ```
 gcloud storage buckets create gs://${_gc_pj_id}-${_common} \
@@ -139,14 +131,14 @@ gcloud storage buckets create gs://${_gc_pj_id}-${_common} \
   --project ${_gc_pj_id}
 ```
 
-+ Google Cloud Storage にアップロードする
++ Google Cloud Storage にアップロードします
 
 ```
 gcloud storage cp world-db/world.sql gs://${_gc_pj_id}-${_common}/
 gcloud storage cp world_x-db/world_x.sql gs://${_gc_pj_id}-${_common}/
 ```
 
-+ Cloud SQL Instance の Service Account の Role を設定
++ Cloud SQL Instance の Service Account の Role を設定します
 
 ```
 gcloud sql instances describe ${_sql_instance_name} --project ${_gc_pj_id} --format json | jq -r .serviceAccountEmailAddress
@@ -155,7 +147,7 @@ gcloud sql instances describe ${_sql_instance_name} --project ${_gc_pj_id} --for
 export _sql_instance_sa="$(gcloud sql instances describe ${_sql_instance_name} --project ${_gc_pj_id} --format json | jq -r .serviceAccountEmailAddress)"
 ```
 
-+ Cloud SQL Instance が Cloud Storage を読めるようにする
++ Cloud SQL Instance が Cloud Storage を読めるように Role を付与します
 
 ```
 gcloud beta projects add-iam-policy-binding ${_gc_pj_id} \
@@ -163,13 +155,13 @@ gcloud beta projects add-iam-policy-binding ${_gc_pj_id} \
   --role="roles/storage.objectViewer"
 ```
 
-+ ちょっと待つ
++ 反映まで少し待ちましょう :coffee:
 
 ```
 sleep 60s
 ```
 
-+ Cloud Storage から Cloud SQL Instance にサンプルデータを挿入( Import )する
++ Cloud Storage から Cloud SQL Instance にサンプルデータを挿入( Import )します
 
 ```
 ### world.sql
@@ -179,11 +171,10 @@ gcloud beta sql import sql ${_sql_instance_name} gs://${_gc_pj_id}-${_common}/wo
 gcloud beta sql import sql ${_sql_instance_name} gs://${_gc_pj_id}-${_common}/world_x.sql --project ${_gc_pj_id} --quiet
 ```
 
+---> これで Cloud SQL にデータが入った状態になりました :)
 
----> これで Cloud SQL にデータが入った状態になった
 
-
-+ 確認
++ 確認する場合は下記のコマンドで Cloud SQL に接続しましょう
 
 ```
 gcloud sql connect ${_sql_instance_name} \
@@ -191,27 +182,16 @@ gcloud sql connect ${_sql_instance_name} \
   --project ${_gc_pj_id}
 ```
 
-
 ## 2. BigQuery から Cloud SQL を繋げる
 
-+ API の有効化
-  + BigQuery Connection API
-
-```
-gcloud beta services enable bigqueryconnection.googleapis.com --project ${_gc_pj_id}
-```
-
-
-+ コネクションを作る
-  + https://cloud.google.com/bigquery/docs/connect-to-sql?hl=ja
++ Cloud SQL へのコネクション( Connections )を作ります
+  + https://cloud.google.com/bigquery/docs/connect-to-sql?hl=en#bq
 
 ```
 export _federated_queries_connection_id="${_common}-con-id"
 ```
-
-
 ```
-### world
+### world 用
 echo '' > world.sh
 
 cat << __EOF__ >> world.sh
@@ -232,7 +212,7 @@ cat world.sh
 bash -x world.sh
 ```
 ```
-### world_x
+### world_x 用
 echo '' > world_x.sh
 
 cat << __EOF__ >> world_x.sh
@@ -253,9 +233,8 @@ cat world_x.sh
 bash -x world_x.sh
 ```
 
-
-+ 確認する
-  + https://cloud.google.com/bigquery/docs/working-with-connections?hl=ja#bq_3
++ コネクション( Connections )を確認します
+  + https://cloud.google.com/bigquery/docs/working-with-connections?hl=en#bq
 
 ```
 ### プロジェクト内のすべての連携を出す
@@ -266,7 +245,7 @@ bq ls --connection \
   --format json | jq .
 ```
 
-+ 今回作成した接続の詳細の表示
++ 今回作成したコネクション( Connections )の詳細を表示します
 
 ```
 ### world
@@ -286,8 +265,8 @@ bq show --connection \
   | jq .
 ```
 
-+ 今回作成した接続のサービスアカウントに Cloud SQL への接続できるroleを付与する
-  + おそらく同じ SA だが念の為両方やる
++ 今回作成した接続のサービスアカウントに Cloud SQL への接続できる Role を付与します
+  + おそらく同じサービスアカウントですが、念の為両方やりましょう
 
 ```
 export _federated_queries_connection_sa_world="$(
@@ -324,10 +303,8 @@ gcloud beta projects add-iam-policy-binding ${_gc_pj_id} \
   --role="roles/cloudsql.client"
 ```
 
-
-
-
-+ クエリ
++ クエリを実行してみます
+  + 一番ベーシックな **INFORMATION_SCHEMA** を実行します
 
 ```
 ### world
@@ -359,8 +336,11 @@ cat query_x.sh
 bash -x query_x.sh
 ```
 
+---> 対象の DataBase の INFORMATION_SCHEMA の情報が取得・表示出来れば、今回のハンズオンは成功です :)
 
 ## 99 クリーンアップ
+
+ハンズオン終了後は不要なリソースは削除しましょう ;)
 
 <details>
 <summary>連携の削除</summary>

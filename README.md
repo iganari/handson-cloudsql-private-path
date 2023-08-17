@@ -6,6 +6,8 @@ Cloud SQL の Google Cloud services authorization( Private Path )を試すハン
 
 Cloud SQL にパブリック IP アドレスを持たせること無く、 BigQuery から連携クエリ( Federated queries )が実行可能なので、Google Cloud のセキュリティの向上に繋がります :lock:
 
+![](./_img/01.png)
+
 ## ハンズオン
 
 ## 0. 準備

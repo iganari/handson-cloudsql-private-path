@@ -4,7 +4,7 @@
 
 Cloud SQL の Google Cloud services authorization( Private Path )を試すハンズオンです
 
-Cloud SQL にパブリック IP アドレスを持たせること無く、 BigQuery から連携クエリ( Federated queries )を実行可能なので、Google Cloud のセキュリティの向上に繋がります
+Cloud SQL にパブリック IP アドレスを持たせること無く、 BigQuery から連携クエリ( Federated queries )が実行可能なので、Google Cloud のセキュリティの向上に繋がります :lock:
 
 ## ハンズオン
 
@@ -182,7 +182,7 @@ gcloud sql connect ${_sql_instance_name} \
   --project ${_gc_pj_id}
 ```
 
-## 2. BigQuery から Cloud SQL を繋げる
+## 2. BigQuery から Cloud SQL に繋げる
 
 + Cloud SQL へのコネクション( Connections )を作ります
   + https://cloud.google.com/bigquery/docs/connect-to-sql?hl=en#bq

@@ -12,6 +12,9 @@ Cloud Console では Google Cloud services authorization( Google Cloud サービ
 
 ![](./_img/01.png)
 
+### 注意事項
+
+記載の情報は執筆当時の情報になります
 ## ハンズオン
 
 ## 0. 準備

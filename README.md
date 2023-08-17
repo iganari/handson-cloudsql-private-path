@@ -1,10 +1,12 @@
-# Hands On Google Cloud services authorization of Cloud SQL
+# Hands On Private Path of Cloud SQL
 
 ## 概要
 
-Cloud SQL の Google Cloud services authorization( Private Path )を試すハンズオンです
+Cloud SQL の Private Path を試すハンズオンです
 
 Cloud SQL にパブリック IP アドレスを持たせること無く、 BigQuery から連携クエリ( Federated queries )が実行可能なので、Google Cloud のセキュリティの向上に繋がります :lock:
+
+画面上では Google Cloud services authorization( Google Cloud サービスの承認 )とも表示されています
 
 ![](./_img/main.png)
 

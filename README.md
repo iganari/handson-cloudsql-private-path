@@ -99,6 +99,8 @@ gcloud beta sql instances create ${_sql_instance_name} \
   --project ${_gc_pj_id}
 ```
 
+![](./_img/01-01.png)
+
 + Cloud SQL Instance 内に database とユーザを作成します
 
 ```
@@ -274,6 +276,8 @@ bq show --connection \
   | jq .
 ```
 
+![](./_img/02-01.png)
+
 + 今回作成した接続のサービスアカウントに Cloud SQL への接続できる Role を付与します
   + おそらく同じサービスアカウントですが、念の為両方やりましょう
 
@@ -345,11 +349,25 @@ cat query_x.sh
 bash -x query_x.sh
 ```
 
+![](./_img/02-02.png)
+
 ---> 対象の DataBase の INFORMATION_SCHEMA の情報が取得・表示出来れば、今回のハンズオンは成功です :)
 
 ## 99 クリーンアップ
 
 ハンズオン終了後は不要なリソースは削除しましょう ;)
+
+
+<details>
+<summary>Cloud Storage の削除</summary>
+
++ 連携
+
+```
+gcloud storage rm -r gs://${_gc_pj_id}-${_common}
+```
+
+</details>
 
 <details>
 <summary>連携の削除</summary>
@@ -381,7 +399,8 @@ gcloud beta sql instances delete ${_sql_instance_name} --project ${_gc_pj_id} --
 ```
 gcloud beta compute addresses delete google-managed-services-${_common}-network \
   --global \
-  --project ${_gc_pj_id}
+  --project ${_gc_pj_id} \
+   --quiet
 ```
 
 </details>
@@ -395,7 +414,8 @@ gcloud beta compute addresses delete google-managed-services-${_common}-network 
 gcloud services vpc-peerings delete \
   --service servicenetworking.googleapis.com \
   --network ${_common}-network \
-  --project ${_gc_pj_id}
+  --project ${_gc_pj_id} \
+   --quiet
 ```
 
 </details>
